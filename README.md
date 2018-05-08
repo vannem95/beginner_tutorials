@@ -8,8 +8,7 @@ ROS package to move a robot base using aruco markers and homography
 
  * beginner_tutorials/move_to.srv
 
-      float64 a
-      float64 b
-      ---
-      string sum
-
+        float64 x
+        float64 y
+        
+        x and y of the destination ground coordinates 
