@@ -11,4 +11,4 @@ ROS package to move a robot base using aruco markers and homography
         float64 x
         float64 y
         
-        x and y of the destination ground coordinates 
+        [ x and y of the destination ground coordinates ]
