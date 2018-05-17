@@ -219,7 +219,7 @@ def move_to_function(mob_pose):
 
 # ============= Main loop - Go ===========
 
-    while (np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) >= distance_tolerance) & (0 == turn_error):  # 4 * np.linalg.norm([curr_x - wp_x, curr_y - wp_y]) * m.tan(0.05):
+    while (np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) >= distance_tolerance) and (0 == turn_error):  # 4 * np.linalg.norm([curr_x - wp_x, curr_y - wp_y]) * m.tan(0.05):
 
         if (159 > y_global1) & (0 != y_global1):
             curr_x = x_global1
