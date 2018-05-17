@@ -24,6 +24,9 @@ total_distance = []
 max_speed = 0.95
 min_speed = 0.3
 
+# initializing turn_error
+turn_error = 0
+
 def initialize():
 # initializing the main node which subscribes to the pose and pixel topics of aruco singles and publishes the command velocity
     global cmd_vel_pub
@@ -95,7 +98,10 @@ def move_to_function(mob_pose):
     global total_distance
     global max_speed
     global min_speed
+    global turn_error
+
     vx_max = 0.18
+
     rospy.sleep(1)
     
     cmdvel = Twist()
@@ -109,7 +115,10 @@ def move_to_function(mob_pose):
 
     wp_x = mob_pose.a
     wp_y = mob_pose.b
+
     check_done = 0
+
+# ============= Check 1 ===========
 
     if (159 > y_global1) & (0 != y_global1):
         curr_x = x_global1
@@ -128,6 +137,8 @@ def move_to_function(mob_pose):
 
     target_theta = m.atan2((wp_x - curr_x), (wp_y - curr_y))
 
+# ============= Check 2 ===========
+
     if -0.5 * m.pi > target_theta:
         target_theta = target_theta + m.pi
     elif 0.5 * m.pi < target_theta:
@@ -138,7 +149,9 @@ def move_to_function(mob_pose):
     theta_tolerance = 0.05
     distance_tolerance = 10
 
-    while (abs(yaw - target_theta) > theta_tolerance):
+# ============= Main loop - Turn ===========
+
+    while (abs(yaw - target_theta) > theta_tolerance) and (yaw < 0.04) and (yaw > -0.04):
         
         if (159 > y_global1) & (0 != y_global1):
             curr_x = x_global1
@@ -155,40 +168,58 @@ def move_to_function(mob_pose):
             target_theta = target_theta - m.pi
         else:
             target_theta = target_theta
+
         rospy.loginfo('Turning')
+
         # print mob_pose
         # rospy.loginfo('Target theta')
         # print target_theta
+
         if 0 < target_theta:
             w = 0.18   #CW
         else:
             w = -0.18   #CCW
+
         # w = -0.1 * (yaw - target_theta)
         # if abs(w) > 0.12:
+
         cmdvel.linear.x = w
+
         # else:
         #     cmdvel.linear.x = np.sign(w) * 0.11
+
         cmdvel.angular.z = 0
+
         print 'heading:',yaw
         print 'target_theta:',target_theta
         print "angle difference"
         print abs(yaw - target_theta)
+
         cmd_vel_pub.publish(cmdvel)
+
         rospy.sleep(0.01)
+
         print 'x_global1:',x_global1
         print 'y_global1:',y_global1
         print 'x_global2:',x_global2
         print 'y_global2:',y_global2
+
         print 'x:',curr_x
         print 'y:',curr_y
 
-    
     last_distance = np.linalg.norm([wp_x - curr_x, wp_y - curr_y])
-    out_of_bounds = 0
     total_distance.append(np.linalg.norm([wp_x - curr_x, wp_y - curr_y]))
     distance_percent = ((total_distance[0] - (np.linalg.norm([wp_x - curr_x, wp_y - curr_y])))/(total_distance[0]))
 
-    while (np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) >= distance_tolerance) & (0 == out_of_bounds):  # 4 * np.linalg.norm([curr_x - wp_x, curr_y - wp_y]) * m.tan(0.05):
+# ============= Check 3 ===========
+
+    if (yaw > 0.04) or (yaw > -0.04):
+    	turn_error =  1
+
+
+# ============= Main loop - Go ===========
+
+    while (np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) >= distance_tolerance) & (0 == turn_error):  # 4 * np.linalg.norm([curr_x - wp_x, curr_y - wp_y]) * m.tan(0.05):
 
         if (159 > y_global1) & (0 != y_global1):
             curr_x = x_global1
@@ -206,8 +237,11 @@ def move_to_function(mob_pose):
                 direction = 1
 
         check_done = 1
+
         distance_percent = ((total_distance[0] - (np.linalg.norm([wp_x - curr_x, wp_y - curr_y])))/(total_distance[0]))
+
         rospy.loginfo('distance percent: %f',distance_percent)
+
         total_distance.append(np.linalg.norm([wp_x - curr_x, wp_y - curr_y]))
 
         
@@ -221,8 +255,11 @@ def move_to_function(mob_pose):
 
         cmdvel.linear.x = 0
         cmdvel.angular.z =  direction * speed_new
+
         rospy.loginfo('Going forward')
+
         cmd_vel_pub.publish(cmdvel)
+
         rospy.sleep(0.01)
 
         speed_old = speed_new
@@ -231,8 +268,9 @@ def move_to_function(mob_pose):
 
         print 'x:',curr_x
         print 'y:',curr_y
+
         print 'distance difference:',np.linalg.norm([wp_x - curr_x, wp_y - curr_y])
-        print 'out of bounds:', out_of_bounds
+
     return move_toResponse("Reached")
 
 
