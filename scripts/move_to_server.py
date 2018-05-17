@@ -30,12 +30,16 @@ def initialize():
     # rospy.init_node('aruco_mapper_v2', anonymous=True)
     rospy.init_node('move_to_server_node')
     rospy.loginfo('aruco_mapper_v2 node crearted')
+
     rospy.Subscriber('/aruco_single1/pixel', PointStamped, xy_callback1)
     rospy.Subscriber('/aruco_single1/pose', PoseStamped, heading_callback1)
     rospy.Subscriber('/aruco_single2/pixel', PointStamped, xy_callback2)
     rospy.Subscriber('/aruco_single2/pose', PoseStamped, heading_callback2)
+
     rospy.loginfo('Subscribing to Marker data for moving base')
+
     cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+
     rospy.Rate(10) # 10hz
 
 def xy_callback1(point):
@@ -120,7 +124,6 @@ def move_to_function(mob_pose):
         yaw = yaw + m.pi
     else:
         yaw = yaw
-
 
 
     target_theta = m.atan2((wp_x - curr_x), (wp_y - curr_y))
@@ -213,11 +216,6 @@ def move_to_function(mob_pose):
         elif (distance_percent) >= 0.8:
             speed_new = max(speed_old - 0.0015,min_speed)
             print ' \n current distance - t-10 distance : ', np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) - total_distance[-10]
-            if np.linalg.norm([wp_x - curr_x, wp_y - curr_y]) > total_distance[-10]:
-            	print '*************************stopped because the bot is about to go out of bounds********************************'
-            	out_of_bounds = 0
-            else:
-            	out_of_bounds = 0
         else:
         	speed_new = speed_old
 
