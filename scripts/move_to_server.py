@@ -213,7 +213,7 @@ def move_to_function(mob_pose):
 
 # ============= Check 3 ===========
 
-    if (yaw > 0.04) or (yaw > -0.04):
+    if (yaw > 0.04) or (yaw < -0.04):
     	turn_error =  1
 
 
